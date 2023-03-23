@@ -1,72 +1,95 @@
+% estado -> p(agente-coluna, agente-linha, caixa-coluna, caixa-linha)
+estado_inicial(p(2, 7, 2, 6)).
+estado_final(p(_, _, 5, 1)).
 
-%-------------------------estados--------------------------
+% restrições
+bloqueada(p(1,2)).
+bloqueada(p(3,1)).
+bloqueada(p(3,2)).
+bloqueada(p(4,4)).
+bloqueada(p(4,5)).
+bloqueada(p(4,6)).
+bloqueada(p(7,2)).
 
-estado_inicial(s(a(6, 1), c(5, 1))).
+lim(X, Y) :- 
+    X =< 7,
+    X >= 1,
+    Y =< 7,
+    Y >= 1.
 
-estado_final(s(a(_, _), c(0, 4))).
+iguais(A, A).
 
-casas_bloq([p(0, 2), p(1, 0), p(1, 2), p(1, 6), p(3, 3), p(4, 3), p(5, 3)]).
+% operadores de estado -> op(estado_atual, operador, estado_seguinte, custo)
+op(p(X, Y, P, Q), cima, p(X, Y1, P, Q1), 1) :-
+    Y1 is Y - 1,
+    (iguais(p(X, Y1), p(P, Q)) -> 
+        (
+            Q1 is Q - 1,
+            lim(P, Y1),
+            \+ bloqueada(p(P, Q1))
+        );
+        (
+            Q1 is Q,
+            lim(X, Y1),
+            \+ bloqueada(p(X, Y1))
+        )
+    ).
+op(p(X,Y,P,Q),direita,p(X1,Y,P1,Q),1) :-
+    X1 is X+1,
+    (iguais(p(X1,Y),p(P,Q)) ->
+        (
+            P1 is P+1,
+            lim(P1,Q),
+            lim(X1,Y),
+            \+ bloqueada(p(P1,Q))
+        );
+        (
+            P1 is P,
+            lim(X1,Y),
+            \+ bloqueada(p(X1,Y))
+        )
+    ).
+op(p(X,Y,P,Q),baixo,p(X,Y1,P,Q1),1) :-
+    Y1 is Y+1,
+    (iguais(p(X,Y1),p(P,Q)) ->
+        (
+            Q1 is Q+1,
+            lim(P,Q1),
+            lim(X,Y1),
+            \+ bloqueada(p(P,Q1))
+        );
+        (
+            Q1 is Q,
+            lim(X,Y1),
+            \+ bloqueada(p(X,Y1))
+        )
+    ).
+op(p(X,Y,P,Q),esquerda,p(X1,Y,P1,Q),1) :-
+    X1 is X-1,
+    (iguais(p(X1,Y),p(P,Q)) ->
+        (
+            P1 is P-1,
+            lim(P1,Q),
+            lim(X1,Y),
+            \+ bloqueada(p(P1,Q))
+        );
+        (
+            P1 is P,
+            lim(X1,Y),
+            \+ bloqueada(p(X1,Y))
+        )
+    ).
 
+% heurística
+h1(p(_,_,Ix,Iy),SOMA):-
+	estado_final(p(_,_,Fx,Fy)),
+	Dx is abs(Ix - Fx), 
+ 	Dy is abs(Iy - Fy),
+	SOMA is Dx + Dy.
 
-%-------------------------restriçoes--------------------------
+h2(p(_,_, _,Iy),SOMA):-
+	estado_final(p(_,_,_,Fy)),
+	Dy is abs(Iy - Fy), 
+	SOMA is Dy.
 
-pos_valida(a(X, Y)):- casas_bloq(L),
-						 dentro_sala(p(X, Y)),
-						 \+member(p(X, Y), L).
-
-pos_valida(c(X, Y)):- casas_bloq(L),
-						 dentro_sala(p(X, Y)),
-						 \+ member(p(X, Y), L).
-
-
-dentro_sala(p(X, Y)) :- X >= 0, X =< 6,
-                      Y >= 0, Y =< 6.
-
-
-%-------------------------operações--------------------------
-
-%op(Estado_act,operador,Estado_seg,Custo)
-op(s(a(Xa, Ya), c(Xc, Yc)) ,emp_esq, s(a(Xa, Za), c(Xc, Zc)) ,1):- Za is Ya-1,
-																   Zc is Yc-1,
-																   (Xc, Yc) = (Xa, Za),
-																   pos_valida(a(Xa, Za)),
-																   pos_valida(c(Xc, Zc)).
-
-op(s(a(Xa, Ya), c(Xc, Yc)) ,move_esq, s(a(Xa, Za), c(Xc, Yc)) ,1):- Za is Ya-1,
-																	(Xc, Yc) \= (Xa, Za),
-																	pos_valida(a(Xa, Za)). 
-
-
-op(s(a(Xa, Ya), c(Xc, Yc)), emp_dir, s(a(Xa, Za), c(Xc, Zc)), 1):- Za is Ya+1,
-																   Zc is Yc+1,
-																   (Xc, Yc) = (Xa, Za),
-																   pos_valida(a(Xa, Za)),
-																   pos_valida(c(Xc, Zc)).
-
-op(s(a(Xa, Ya), c(Xc, Yc)), move_dir, s(a(Xa, Za), c(Xc, Yc)), 1):- Za is Ya+1,
-																    (Xc, Yc) \= (Xa, Za),
-																    pos_valida(a(Xa, Za)). 
-
-
-op(s(a(Xa, Ya), c(Xc, Yc)), emp_sobe, s(a(Za, Ya), c(Zc, Yc)), 1):- Za is Xa-1,
-																	Zc is Xc-1,
-																	(Xc, Yc) = (Za, Ya),
-																	pos_valida(a(Za, Ya)),
-																	pos_valida(c(Zc, Yc)).
-
-op(s(a(Xa, Ya), c(Xc, Yc)), move_sobe, s(a(Za, Ya), c(Xc, Yc)), 1):- Za is Xa-1,                               
-																	 (Xc, Yc) \= (Za, Ya),
-																	 pos_valida(c(Za, Ya)).
-
-
-op(s(a(Xa, Ya), c(Xc, Yc)), emp_desce, s(a(Za, Ya), c(Zc, Yc)), 1):- Za is Xa+1,
-																	 Zc is Xc+1,
-																	 (Xc, Yc) = (Za, Ya),
-																	 pos_valida(a(Za, Ya)),
-																	 pos_valida(c(Zc, Yc)).
-
-op(s(a(Xa, Ya), c(Xc, Yc)), move_desce, s(a(Za, Ya), c(Xc, Yc)), 1):- Za is Xa+1,                               
-																	  (Xc, Yc) \= (Za, Ya),
-																	  pos_valida(c(Za, Ya)).
-
-
+h(A, B) :- h2(A, B).
