@@ -20,6 +20,7 @@ lim(X, Y) :-
 iguais(A, A).
 
 % operadores
+op(p(X,Y,P,Q),cima,p(X,Y1,P,Q1),1):-
     Y1 is Y - 1,
     (iguais(p(X, Y1), p(P, Q)) -> 
         (
