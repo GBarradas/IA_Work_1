@@ -93,4 +93,4 @@ h2(p(_,_, _,Iy),SOMA):-
 	Dy is abs(Iy - Fy), 
 	SOMA is Dy.
 
-h(A, B) :- h2(A, B).
+h(A, B) :- h1(A, B).

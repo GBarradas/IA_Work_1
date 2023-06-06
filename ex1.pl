@@ -29,4 +29,4 @@ h_euclidiana(e(X1,Y1),e(X2,Y2),D):-
     DeltaY is Y1-Y2,
     D is round(sqrt((DeltaX*DeltaX - DeltaY*DeltaY))).
 
-h(E, V) :- estado_final(Ef), h_manhattan(E,Ef,V).
+h(E, V) :- estado_final(Ef), h_euclidiana(E,Ef,V).
