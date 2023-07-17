@@ -1,34 +1,32 @@
-% estados
-estado_inicial((6, 1)).
-estado_final((0, 4)).
+estado_inicial(e(1,0)).
+estado_final(e(4,6)).
 
-% restrições
-casas_bloq([(0, 2), (1, 0), (1, 2), (1, 6), (3, 3), (4, 3), (5, 3)]).
-
-pos_valida((X, Y)) :- casas_bloq(L), dentro_sala((X, Y)), \+member((X, Y), L).
-dentro_sala((X, Y)) :- X>=0, X=<6, Y>=0, Y=<6.
+bloqueada([(3,1),(3,2),(3,3),(0,5),(2,5),(6,5),(2,6)]).
+dentro_tabuleiro((X,Y)):- X@>=0, X@=<6, Y@>=0, Y@=<6.
 
 
-% operadores
-op((X, Y), sobe, (Z, Y), 1) :- Z is X-1, pos_valida((Z, Y)).
-op((X, Y), desce, (Z, Y), 1) :- Z is X+1, pos_valida((Z, Y)).
-op((X, Y), esq, (X, Z), 1) :- Z is Y-1, pos_valida((X, Z)).
-op((X, Y), dir, (X, Z), 1) :- Z is Y+1, pos_valida((X, Z)).
+op(e(X,Y), dir, e(W,Y), 1):- W is X+1, dentro_tabuleiro((W,Y)), bloqueada(L),
+    \+member((W,Y),L).
 
+op(e(X,Y), esq, e(W,Y), 1):- W is X-1, dentro_tabuleiro((W,Y)), bloqueada(L),
+    \+member((W,Y),L).
 
-% heurística Manhattan
-h1((A,B),C):-
-	estado_final((X,Y)),
-	X1 is abs(A - X), 
- 	Y1 is abs(B - Y),
-	C is X1 + Y1.
+op(e(X,Y), cima, e(X,W), 1):- W is Y+1, dentro_tabuleiro((X,W)), bloqueada(L),
+    \+member((X,W),L).
 
-% heurística Euclidiana
-h2((Ix,Iy),SOMA):-
-	estado_final((Fx,Fy)),
-	Dx is abs(Ix - Fx), 
- 	Dy is abs(Iy - Fy),
-	SOMA is round(sqrt(Dy ** 2 + Dx ** 2)).
+op(e(X,Y), baixo, e(X,W), 1):- W is Y-1, dentro_tabuleiro((X,W)), bloqueada(L),
+    \+member((X,W),L).
 
-h(A, B) :- h2(A, B).
+%cálculo da distância de Manhattan
+h_manhattan(e(X1,Y1),e(X2,Y2),D) :-
+    DeltaX is abs(X1-X2),
+    DeltaY is abs(Y1-Y2),
+    D is DeltaX + DeltaY.
 
+%Cálculo de distância Euclidiana
+h_euclidiana(e(X1,Y1),e(X2,Y2),D):-    
+    DeltaX is X1-X2,
+    DeltaY is Y1-Y2,
+    D is round(sqrt((DeltaX*DeltaX - DeltaY*DeltaY))).
+
+h(E, V) :- estado_final(Ef), h_euclidiana(E,Ef,V).

@@ -20,6 +20,7 @@ lim(X, Y) :-
 iguais(A, A).
 
 % operadores
+op(p(X,Y,P,Q),cima,p(X,Y1,P,Q1),1):-
     Y1 is Y - 1,
     (iguais(p(X, Y1), p(P, Q)) -> 
         (
@@ -92,4 +93,4 @@ h2(p(_,_, _,Iy),SOMA):-
 	Dy is abs(Iy - Fy), 
 	SOMA is Dy.
 
-h(A, B) :- h2(A, B).
+h(A, B) :- h1(A, B).
